@@ -1,14 +1,84 @@
 let mods=[];
 const grid=document.getElementById("mods"),empty=document.getElementById("empty"),search=document.getElementById("search"),sort=document.getElementById("sort");
 async function loadMods(){
- try{
-  const r=await fetch("/api/mods",{cache:"no-store"});
-  if(!r.ok) throw new Error("API error");
-  mods=await r.json();
-  renderMods();
- }catch(e){
-  console.error(e); grid.replaceChildren(); empty.textContent="Couldn't load mods. :("; empty.classList.remove("hidden");
- }
+
+  try{
+
+    const r = await fetch(
+      "/api/mods",
+      {cache:"no-store"}
+    );
+
+    if(!r.ok)
+      throw new Error("Could not load mods");
+
+    mods = await r.json();
+
+    mods = mods.map(d => {
+
+      const id =
+        String(d.id || d.name || "")
+          .replace(/^\/+|\/+$/g,"");
+
+      return {
+
+        id,
+
+        name: d.name || id,
+
+        description:
+          d.description ||
+          d.desc ||
+          "",
+
+        version:
+          d.version ||
+          "",
+
+        author:
+          Array.isArray(d.credits) &&
+          d.credits.length
+            ? String(d.credits[0])
+                .split(" - ")[0]
+            : (d.author || ""),
+
+        icon:
+          d.icon ||
+          `/mods/${encodeURIComponent(id)}/icon.png`,
+
+        banner:
+          d.banner ||
+          `/mods/${encodeURIComponent(id)}/banner.png`,
+
+        date:
+          d.date ||
+          d.updated_at ||
+          "1970-01-01",
+
+        smalldesc:
+          d.smalldesc ||
+          d.desc ||
+          ""
+
+      };
+
+    });
+
+    renderMods();
+
+  }catch(e){
+
+    console.error(e);
+
+    grid.replaceChildren();
+
+    empty.textContent =
+      "Couldn't load mods. :(";
+
+    empty.classList.remove("hidden");
+
+  }
+
 }
 function renderMods(){
  const q=search.value.toLowerCase().trim();
