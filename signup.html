@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
 <title>Sign Up - PTEM Mods</title>
-
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -15,67 +12,46 @@
 <div class="scanlines"></div>
 
 <header class="site-header">
-
   <div class="brand">
-    <img
-      src="assets/logo.png"
-      class="logo-image"
-      alt="PTEM Mods"
-    >
+    <img src="assets/logo.png" class="logo-image" alt="PTEM Mods">
   </div>
 
   <nav class="main-nav">
-
     <a href="index.html">
-      <img src="assets/nav-mods.png" alt="">
-      Mods
+      <img src="assets/nav-mods.png" alt=""> Mods
     </a>
 
     <a href="login.html">
-      <img src="assets/nav-login.png" alt="">
-      Log In
+      <img src="assets/nav-login.png" alt=""> Log In
     </a>
 
     <a href="signup.html">
-      <img src="assets/nav-signup.png" alt="">
-      Sign Up
+      <img src="assets/nav-signup.png" alt=""> Sign Up
     </a>
 
     <a href="upload.html">
-      <img src="assets/nav-upload.png" alt="">
-      Upload
+      <img src="assets/nav-upload.png" alt=""> Upload
     </a>
-
   </nav>
-
 </header>
 
 
 <main class="page">
 
   <div class="mod-topbar">
-
-    <a class="back-link" href="index.html">
-      ← Go Back
-    </a>
-
+    <a class="back-link" href="index.html">← Go Back</a>
   </div>
 
+  <section class="detail-panel description-panel"
+           style="max-width:650px;margin:auto;">
 
-  <section
-    class="detail-panel description-panel"
-    style="max-width:650px;margin:auto;"
-  >
-
-    <h1 class="panel-title">
-      SIGN UP
-    </h1>
-
+    <h1 class="panel-title">SIGN UP</h1>
 
     <form id="signup-form">
 
       <label>
-        Email<br>
+        Email
+        <br>
         <input
           id="email"
           type="email"
@@ -86,9 +62,9 @@
 
       <br><br>
 
-
       <label>
-        Password<br>
+        Password
+        <br>
         <input
           id="password"
           type="password"
@@ -100,9 +76,9 @@
 
       <br><br>
 
-
       <label>
-        Confirm password<br>
+        Confirm password
+        <br>
         <input
           id="password2"
           type="password"
@@ -114,25 +90,19 @@
 
       <br><br>
 
-
-      <button type="submit">
+      <button id="signup-button" type="submit">
         CREATE ACCOUNT
       </button>
 
     </form>
 
-
     <p id="status" class="missing"></p>
-
 
     <hr>
 
-
     <p>
       Already have an account?
-      <a href="login.html">
-        Log In
-      </a>
+      <a href="login.html">Log In</a>
     </p>
 
   </section>
@@ -140,9 +110,7 @@
 </main>
 
 
-<footer>
-  PTEM LOADER MODS
-</footer>
+<footer>PTEM LOADER MODS</footer>
 
 
 <script type="module">
@@ -150,33 +118,42 @@
 import { auth } from "./firebase.js";
 
 import {
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 
-const form =
-  document.getElementById("signup-form");
-
-const status =
-  document.getElementById("status");
+const form = document.getElementById("signup-form");
+const button = document.getElementById("signup-button");
+const status = document.getElementById("status");
 
 
-form.addEventListener("submit", async e => {
+// --------------------------------------------------
+// Mostrar que Firebase cargó correctamente
+// --------------------------------------------------
 
-  e.preventDefault();
+console.log("Firebase Auth cargado:", auth);
+
+
+// --------------------------------------------------
+// Crear cuenta
+// --------------------------------------------------
+
+form.addEventListener("submit", async (event) => {
+
+  event.preventDefault();
 
   const email =
-    document.getElementById("email")
-      .value.trim();
+    document.getElementById("email").value.trim();
 
   const password =
-    document.getElementById("password")
-      .value;
+    document.getElementById("password").value;
 
   const password2 =
-    document.getElementById("password2")
-      .value;
+    document.getElementById("password2").value;
 
+
+  // Comprobar contraseñas
 
   if (password !== password2) {
 
@@ -187,33 +164,104 @@ form.addEventListener("submit", async e => {
   }
 
 
+  if (password.length < 6) {
+
+    status.textContent =
+      "ERROR: Password must have at least 6 characters.";
+
+    return;
+  }
+
+
   try {
+
+    button.disabled = true;
 
     status.textContent =
       "Creating account...";
 
 
-    await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
+    console.log("Intentando crear cuenta:", email);
+
+
+    const result =
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+
+    console.log(
+      "CUENTA CREADA:",
+      result.user
     );
 
 
     status.textContent =
-      "Account created! Redirecting...";
+      "Account created!";
 
 
-    location.href =
-      "index.html";
+    // Esperamos un poquito para que Firebase
+    // termine de guardar la sesión.
+
+    setTimeout(() => {
+
+      location.href = "index.html";
+
+    }, 1000);
 
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "FIREBASE ERROR:",
+      error
+    );
+
+    console.error(
+      "ERROR CODE:",
+      error.code
+    );
+
+    console.error(
+      "ERROR MESSAGE:",
+      error.message
+    );
+
 
     status.textContent =
-      "ERROR: " + error.message;
+      "ERROR: " +
+      error.code +
+      " - " +
+      error.message;
+
+
+    button.disabled = false;
+
+  }
+
+});
+
+
+// --------------------------------------------------
+// Detectar si Firebase ya tiene una sesión
+// --------------------------------------------------
+
+onAuthStateChanged(auth, (user) => {
+
+  if (user) {
+
+    console.log(
+      "Usuario autenticado:",
+      user.email
+    );
+
+  } else {
+
+    console.log(
+      "No hay usuario autenticado."
+    );
 
   }
 
@@ -222,4 +270,4 @@ form.addEventListener("submit", async e => {
 </script>
 
 </body>
-  </html>
+</html>
