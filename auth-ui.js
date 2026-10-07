@@ -28,7 +28,7 @@ function setupAuthUI() {
       signup.innerHTML =
         '<img src="assets/nav-signup.png" alt=""> Sign Out';
 
-      signup.href = "";
+      signup.href = "profile.html";
 
 
       signup.onclick = async (event) => {
