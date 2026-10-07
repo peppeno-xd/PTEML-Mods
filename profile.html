@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Profile - PTEM Mods</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="scanlines"></div>
+
+<header class="site-header">
+
+  <div class="brand">
+    <img
+      src="assets/logo.png"
+      class="logo-image"
+      alt="PTEM Mods"
+    >
+  </div>
+
+  <nav class="main-nav">
+
+    <a href="index.html">
+      <img src="assets/nav-mods.png" alt="">
+      Mods
+    </a>
+
+    <a href="login.html">
+      <img src="assets/nav-login.png" alt="">
+      Log In
+    </a>
+
+    <a href="signup.html">
+      <img src="assets/nav-signup.png" alt="">
+      Sign Up
+    </a>
+
+    <script type="module" src="auth-ui.js"></script>
+
+    <a href="upload.html">
+      <img src="assets/nav-upload.png" alt="">
+      Upload
+    </a>
+
+  </nav>
+
+</header>
+
+
+<main class="page">
+
+  <div class="mod-topbar">
+
+    <a class="back-link" href="index.html">
+      ← Go Back
+    </a>
+
+  </div>
+
+
+  <section
+    id="profile"
+    class="detail-panel description-panel"
+  >
+
+    <p class="empty">
+      Loading profile...
+    </p>
+
+  </section>
+
+
+  <section
+    id="mods-section"
+    class="detail-panel description-panel"
+    style="margin-top:24px;"
+  >
+
+    <h2 class="panel-title">
+      MY MODS
+    </h2>
+
+    <div
+      id="my-mods"
+      class="mod-grid"
+    ></div>
+
+  </section>
+
+</main>
+
+
+<footer>
+  PTEM LOADER MODS
+</footer>
+
+
+<script type="module">
+
+import { auth } from "./firebase.js";
+
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+
+const profile =
+  document.getElementById("profile");
+
+const modsGrid =
+  document.getElementById("my-mods");
+
+
+onAuthStateChanged(auth, async (user) => {
+
+  // No está logueado
+
+  if (!user) {
+
+    location.href = "login.html";
+
+    return;
+
+  }
+
+
+  // -------------------------------
+  // Perfil
+  // -------------------------------
+
+  profile.innerHTML = `
+
+    <div style="text-align:center;">
+
+      <h1 class="panel-title">
+        👤 ${esc(user.email)}
+      </h1>
+
+      <p class="meta">
+        ${esc(user.email)}
+      </p>
+
+      <button id="logout">
+        LOG OUT
+      </button>
+
+    </div>
+
+  `;
+
+
+  document
+    .getElementById("logout")
+    .addEventListener("click", async () => {
+
+      await signOut(auth);
+
+      location.href = "index.html";
+
+    });
+
+
+  // -------------------------------
+  // Cargar mods
+  // -------------------------------
+
+  try {
+
+    const response =
+      await fetch("/api/mods", {
+        cache: "no-store"
+      });
+
+
+    if (!response.ok)
+      throw new Error("Could not load mods");
+
+
+    const mods =
+      await response.json();
+
+
+    const myMods =
+      mods.filter(mod =>
+        String(mod.authorUid || "") ===
+        String(user.uid)
+      );
+
+
+    if (!myMods.length) {
+
+      modsGrid.innerHTML = `
+        <p class="empty">
+          You haven't uploaded any mods yet. :(
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    modsGrid.innerHTML =
+      myMods.map(mod => `
+
+        <a
+          class="mod-card"
+          href="mod.html?id=${encodeURIComponent(mod.id)}"
+        >
+
+          <div class="mod-images">
+
+            <img
+              class="mod-banner"
+              src="${esc(
+                mod.banner ||
+                "assets/missing-banner.png"
+              )}"
+              alt=""
+            >
+
+            <img
+              class="mod-icon"
+              src="${esc(
+                mod.icon ||
+                "assets/missing-mod.png"
+              )}"
+              alt=""
+            >
+
+          </div>
+
+
+          <div class="mod-content">
+
+            <h2>
+              ${esc(mod.name || mod.id)}
+            </h2>
+
+            <p>
+              ${esc(mod.smalldesc || "")}
+            </p>
+
+            <span class="version">
+              v${esc(mod.version || "1.0")}
+            </span>
+
+          </div>
+
+        </a>
+
+      `).join("");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    modsGrid.innerHTML = `
+      <p class="empty">
+        Couldn't load your mods. :(
+      </p>
+    `;
+
+  }
+
+});
+
+
+function esc(value) {
+
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+
+    c => ({
+
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+
+    }[c])
+
+  );
+
+}
+
+</script>
+
+</body>
+</html>
