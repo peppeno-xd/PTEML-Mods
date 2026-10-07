@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Sign Up - PTEM Mods</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="scanlines"></div>
+
+<header class="site-header">
+
+  <div class="brand">
+    <img
+      src="assets/logo.png"
+      class="logo-image"
+      alt="PTEM Mods"
+    >
+  </div>
+
+  <nav class="main-nav">
+
+    <a href="index.html">
+      <img src="assets/nav-mods.png" alt="">
+      Mods
+    </a>
+
+    <a href="login.html">
+      <img src="assets/nav-login.png" alt="">
+      Log In
+    </a>
+
+    <a href="signup.html">
+      <img src="assets/nav-signup.png" alt="">
+      Sign Up
+    </a>
+
+    <a href="upload.html">
+      <img src="assets/nav-upload.png" alt="">
+      Upload
+    </a>
+
+  </nav>
+
+</header>
+
+
+<main class="page">
+
+  <div class="mod-topbar">
+
+    <a class="back-link" href="index.html">
+      ← Go Back
+    </a>
+
+  </div>
+
+
+  <section
+    class="detail-panel description-panel"
+    style="max-width:650px;margin:auto;"
+  >
+
+    <h1 class="panel-title">
+      SIGN UP
+    </h1>
+
+
+    <form id="signup-form">
+
+      <label>
+        Email<br>
+        <input
+          id="email"
+          type="email"
+          required
+          autocomplete="email"
+        >
+      </label>
+
+      <br><br>
+
+
+      <label>
+        Password<br>
+        <input
+          id="password"
+          type="password"
+          required
+          minlength="6"
+          autocomplete="new-password"
+        >
+      </label>
+
+      <br><br>
+
+
+      <label>
+        Confirm password<br>
+        <input
+          id="password2"
+          type="password"
+          required
+          minlength="6"
+          autocomplete="new-password"
+        >
+      </label>
+
+      <br><br>
+
+
+      <button type="submit">
+        CREATE ACCOUNT
+      </button>
+
+    </form>
+
+
+    <p id="status" class="missing"></p>
+
+
+    <hr>
+
+
+    <p>
+      Already have an account?
+      <a href="login.html">
+        Log In
+      </a>
+    </p>
+
+  </section>
+
+</main>
+
+
+<footer>
+  PTEM LOADER MODS
+</footer>
+
+
+<script type="module">
+
+import { auth } from "./firebase.js";
+
+import {
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+
+const form =
+  document.getElementById("signup-form");
+
+const status =
+  document.getElementById("status");
+
+
+form.addEventListener("submit", async e => {
+
+  e.preventDefault();
+
+  const email =
+    document.getElementById("email")
+      .value.trim();
+
+  const password =
+    document.getElementById("password")
+      .value;
+
+  const password2 =
+    document.getElementById("password2")
+      .value;
+
+
+  if (password !== password2) {
+
+    status.textContent =
+      "ERROR: Passwords do not match.";
+
+    return;
+  }
+
+
+  try {
+
+    status.textContent =
+      "Creating account...";
+
+
+    await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+
+    status.textContent =
+      "Account created! Redirecting...";
+
+
+    location.href =
+      "index.html";
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    status.textContent =
+      "ERROR: " + error.message;
+
+  }
+
+});
+
+</script>
+
+</body>
+  </html>
