@@ -19,14 +19,11 @@ function setupAuthUI() {
     if (user) {
 
       // Usuario conectado
-      login.innerHTML =
-        '<a href="index.html"><img src="assets/nav-login.png" alt=""> (user.email || "Account")</a>';
 
+      login.textContent = "👤 " + (user.email || "Account");
       login.href = "#";
 
-      signup.innerHTML =
-        '<a href="index.html"><img src="assets/nav-signin.png" alt=""> Log Out</a>';
-
+      signup.textContent = "Log Out";
       signup.href = "#";
 
 
