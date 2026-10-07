@@ -49,6 +49,21 @@
 
     <h1 class="panel-title">SIGN UP</h1>
 
+    
+  <label>
+    Display Name
+    <br>
+    <input
+      id="displayName"
+      type="text"
+      required
+      maxlength="30"
+      autocomplete="nickname"
+    >
+  </label>
+
+  <br><br>
+    
     <form id="signup-form">
 
       <label>
@@ -103,8 +118,8 @@
     <hr>
 
     <p>
-      Already have an account?
-      <a href="login.html">Log In</a>
+      Already have an account?,
+      <a href="login.html">Log In!!!!!!!!!!!!!</a>
     </p>
 
   </section>
@@ -129,21 +144,14 @@ const form = document.getElementById("signup-form");
 const button = document.getElementById("signup-button");
 const status = document.getElementById("status");
 
-
-// --------------------------------------------------
-// Mostrar que Firebase cargó correctamente
-// --------------------------------------------------
-
 console.log("Firebase Auth cargado:", auth);
-
-
-// --------------------------------------------------
-// Crear cuenta
-// --------------------------------------------------
 
 form.addEventListener("submit", async (event) => {
 
   event.preventDefault();
+
+  const displayName =
+    document.getElementById("displayName").value.trim();
 
   const email =
     document.getElementById("email").value.trim();
@@ -155,25 +163,15 @@ form.addEventListener("submit", async (event) => {
     document.getElementById("password2").value;
 
 
-  // Comprobar contraseñas
+  if (!displayName) {
+    status.textContent = "ERROR: Enter a display name.";
+    return;
+  }
 
   if (password !== password2) {
-
-    status.textContent =
-      "ERROR: Passwords do not match.";
-
+    status.textContent = "ERROR: Passwords do not match.";
     return;
   }
-
-
-  if (password.length < 6) {
-
-    status.textContent =
-      "ERROR: Password must have at least 6 characters.";
-
-    return;
-  }
-
 
   try {
 
@@ -181,10 +179,6 @@ form.addEventListener("submit", async (event) => {
 
     status.textContent =
       "Creating account...";
-
-
-    console.log("Intentando crear cuenta:", email);
-
 
     const result =
       await createUserWithEmailAndPassword(
@@ -194,43 +188,28 @@ form.addEventListener("submit", async (event) => {
       );
 
 
-    console.log(
-      "CUENTA CREADA:",
-      result.user
+    await updateProfile(
+      result.user,
+      {
+        displayName: displayName
+      }
     );
 
+
+    console.log("USER CREATED:", result.user);
 
     status.textContent =
       "Account created!";
 
 
-    // Esperamos un poquito para que Firebase
-    // termine de guardar la sesión.
-
     setTimeout(() => {
-
       location.href = "index.html";
-
     }, 1000);
 
 
   } catch (error) {
 
-    console.error(
-      "FIREBASE ERROR:",
-      error
-    );
-
-    console.error(
-      "ERROR CODE:",
-      error.code
-    );
-
-    console.error(
-      "ERROR MESSAGE:",
-      error.message
-    );
-
+    console.error(error);
 
     status.textContent =
       "ERROR: " +
@@ -238,17 +217,11 @@ form.addEventListener("submit", async (event) => {
       " - " +
       error.message;
 
-
     button.disabled = false;
 
   }
 
 });
-
-
-// --------------------------------------------------
-// Detectar si Firebase ya tiene una sesión
-// --------------------------------------------------
 
 onAuthStateChanged(auth, (user) => {
 
