@@ -1,0 +1,9 @@
+{
+  "name": "ptem-mods",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PTEM Mods website with Vercel Blob uploads",
+  "dependencies": {
+    "@vercel/blob": "latest"
+  }
+}

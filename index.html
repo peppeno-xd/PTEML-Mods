@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PTEM Mods</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="scanlines"></div>
+
+<header class="site-header">
+  <div class="brand">
+    <img src="assets/logo.png" class="logo-image" alt="PTEM Mods">
+  </div>
+
+  <nav class="main-nav">
+    <a href="index.html"><img src="assets/nav-mods.png" alt=""> Mods</a>
+    <a href="#"><img src="assets/nav-login.png" alt=""> Log In</a>
+    <a href="#"><img src="assets/nav-signup.png" alt=""> Sign Up</a>
+    <a href="upload.html"><img src="assets/nav-upload.png" alt=""> Upload</a>
+  </nav>
+</header>
+
+<main class="page">
+  <section class="search-row">
+    <div class="search-box">
+      <img src="assets/icon-search.png" alt="">
+      <input id="search" type="search" placeholder="Search mods...">
+    </div>
+
+    <select id="sort">
+      <option value="newest">Newest</option>
+      <option value="name">Name</option>
+    </select>
+    
+	</section>
+  <section id="mods" class="mod-grid"></section>
+  <p id="empty" class="empty hidden">No mods found. :(</p>
+</main>
+
+<footer>PTEM LOADER MODS</footer>
+<script src="script.js"></script>
+</body>
+</html>
