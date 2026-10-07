@@ -56,10 +56,10 @@ async function loadMods(){
         smalldesc:
           d.smalldesc ||
           d.desc ||
-          ""
+          "",
 
         download:
-          d.download||
+          d.download ||
           ""
       };
 
