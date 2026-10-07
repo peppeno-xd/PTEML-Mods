@@ -35,12 +35,7 @@ async function loadMods(){
           d.version ||
           "",
 
-        author:
-          Array.isArray(d.credits) &&
-          d.credits.length
-            ? String(d.credits[0])
-                .split(" - ")[0]
-            : (d.author || ""),
+        author: d.author || "",
 
         icon:
           d.icon ||
