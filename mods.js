@@ -23,11 +23,6 @@ async function load() {
   }
 
   try {
-
-    /* =========================================
-       Obtener todos los mods desde la API
-    ========================================= */
-
     const r = await fetch(
       "/api/mods",
       { cache: "no-store" }
@@ -37,10 +32,6 @@ async function load() {
       throw new Error("Could not load mods");
 
     const mods = await r.json();
-
-    /* =========================================
-       Buscar el mod solicitado
-    ========================================= */
 
     const d = mods.find(
       m => String(m.id) === String(id)
@@ -52,19 +43,12 @@ async function load() {
       return;
     }
 
-    /* =========================================
-       Datos
-    ========================================= */
-
     const credits =
       Array.isArray(d.credits)
         ? d.credits
         : [];
 
-    const author =
-      credits.length
-        ? String(credits[0]).split(" - ")[0]
-        : (d.author || "");
+    const author = d.author || "",
 
     const icon =
       d.icon ||
@@ -80,11 +64,6 @@ async function load() {
 
     document.title =
       `${d.name || id} - PTEM Mods`;
-
-
-    /* =========================================
-       HTML
-    ========================================= */
 
     detail.innerHTML = `
 
