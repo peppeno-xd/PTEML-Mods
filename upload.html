@@ -133,11 +133,6 @@ onAuthStateChanged(auth, (user) => {
 
   form.style.display = "";
 
-  status.textContent =
-    "Logged in as: " + user.email;
-
-});
-
 const MAX = 50 * 1024 * 1024;
 
 let zipData = null;
@@ -419,24 +414,13 @@ form.addEventListener("submit", async e => {
     const description =
       document.getElementById("description").value.trim();
 
-    const credits =
-      document.getElementById("credits").value
-        .split(/\r?\n/)
-        .map(x => x.trim())
-        .filter(Boolean);
+    const credits = currentUser.displayName || currentUser.email,
 
 
     const id = slug(name);
 
     if (!id)
       throw new Error("Invalid mod name.");
-
-
-    /* ---------------------------------------------
-       Determinar imágenes
-
-       Manual > ZIP
-    --------------------------------------------- */
 
     let icon =
       document.getElementById("icon").files[0] || null;
@@ -451,11 +435,6 @@ form.addEventListener("submit", async e => {
     if (!banner && zipBanner)
       banner = await zipEntryToFile(zipBanner, "banner.png");
 
-
-    /* ---------------------------------------------
-       Upload ZIP
-    --------------------------------------------- */
-
     status.textContent = "Uploading ZIP...";
 
     const z = await send(
@@ -464,21 +443,11 @@ form.addEventListener("submit", async e => {
       "application/zip"
     );
 
-
-    /* ---------------------------------------------
-       Upload icon
-    --------------------------------------------- */
-
     const i = await send(
       icon,
       `mods/${id}/icon.png`,
       "image/png"
     );
-
-
-    /* ---------------------------------------------
-       Upload banner
-    --------------------------------------------- */
 
     const b = await send(
       banner,
@@ -486,10 +455,6 @@ form.addEventListener("submit", async e => {
       "image/png"
     );
 
-
-    /* ---------------------------------------------
-       Metadata
-    --------------------------------------------- */
 
     status.textContent =
       "Saving mod information...";
@@ -511,7 +476,7 @@ form.addEventListener("submit", async e => {
 
       date: new Date().toISOString(),
 
-      author: currentUser.email,
+      author: currentUser.displayName || currentUser.email,
 
       authorUid: currentUser.uid,
 
