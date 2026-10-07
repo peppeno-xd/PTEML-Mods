@@ -511,6 +511,10 @@ form.addEventListener("submit", async e => {
 
       date: new Date().toISOString(),
 
+      author: currentUser.email,
+
+      authorUid: currentUser.uid,
+
       icon: i?.url || "",
 
       banner: b?.url || "",
