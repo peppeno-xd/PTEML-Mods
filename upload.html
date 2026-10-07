@@ -140,11 +140,6 @@ let zipMod = null;
 let zipIcon = null;
 let zipBanner = null;
 
-
-/* ---------------------------------------------------------
-   Slug
---------------------------------------------------------- */
-
 function slug(s) {
   return s
     .toLowerCase()
@@ -155,11 +150,6 @@ function slug(s) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 50);
 }
-
-
-/* ---------------------------------------------------------
-   Buscar archivo dentro del ZIP
---------------------------------------------------------- */
 
 function findZipFile(zip, filename) {
 
@@ -179,12 +169,7 @@ function findZipFile(zip, filename) {
 
   return null;
 }
-
-
-/* ---------------------------------------------------------
-   Leer mod.json
---------------------------------------------------------- */
-
+  
 async function readModJson(zip) {
 
   const file = findZipFile(zip, "mod.json");
@@ -205,11 +190,6 @@ async function readModJson(zip) {
     return null;
   }
 }
-
-
-/* ---------------------------------------------------------
-   ZIP seleccionado
---------------------------------------------------------- */
 
 document.getElementById("zip").addEventListener("change", async e => {
 
@@ -240,11 +220,6 @@ document.getElementById("zip").addEventListener("change", async e => {
 
     zipIcon = findZipFile(zip, "icon.png");
     zipBanner = findZipFile(zip, "banner.png");
-
-
-    /* ---------------------------------------------
-       Rellenar solamente campos vacíos
-    --------------------------------------------- */
 
     if (zipMod) {
 
@@ -332,11 +307,6 @@ document.getElementById("zip").addEventListener("change", async e => {
 
 });
 
-
-/* ---------------------------------------------------------
-   Convert ZIP file to File
---------------------------------------------------------- */
-
 async function zipEntryToFile(entry, filename) {
 
   if (!entry)
@@ -350,11 +320,6 @@ async function zipEntryToFile(entry, filename) {
     { type: "image/png" }
   );
 }
-
-
-/* ---------------------------------------------------------
-   Upload a Blob
---------------------------------------------------------- */
 
 async function send(file, path, contentType) {
 
@@ -381,11 +346,6 @@ async function send(file, path, contentType) {
   });
 
 }
-
-
-/* ---------------------------------------------------------
-   Submit
---------------------------------------------------------- */
 
 form.addEventListener("submit", async e => {
 
@@ -476,7 +436,7 @@ form.addEventListener("submit", async e => {
 
       date: new Date().toISOString(),
 
-      author: (currentUser.displayName || currentUser.email),
+      author: currentUser.displayName || currentUser.email,
 
       authorUid: currentUser.uid,
 
