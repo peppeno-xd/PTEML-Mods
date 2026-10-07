@@ -374,9 +374,11 @@ form.addEventListener("submit", async e => {
     const description =
       document.getElementById("description").value.trim();
 
-    const credits =  
-      document.getElementById("credits").value.trim();
-
+    const credits =
+      document.getElementById("credits").value
+        .split(/\r?\n/)
+        .map(x => x.trim())
+        .filter(Boolean);
 
     const id = slug(name);
 
