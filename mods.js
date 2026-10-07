@@ -1,3 +1,5 @@
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+const detail=document.getElementById("detail");
 async function loadMods(){
 
   try{
@@ -71,18 +73,11 @@ async function loadMods(){
 
     grid.replaceChildren();
 
-    empty.textContent =
-      "Couldn't load mods. :(";
-
-    empty.classList.remove("hidden");
+    detail.innerHTML='<p class="empty">Could not load this mod :(.</p>'
 
   }
 
 }
-
-const detail=document.getElementById("detail");
-const bid=new URLSearchParams(location.search).get("bid");
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 async function load(){
   loadMods();
   document.title=`${name} - PTEM Mods`;
