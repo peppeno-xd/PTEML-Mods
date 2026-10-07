@@ -476,7 +476,7 @@ form.addEventListener("submit", async e => {
 
       date: new Date().toISOString(),
 
-      author: currentUser.displayName || currentUser.email,
+      author: (currentUser.displayName || currentUser.email);
 
       authorUid: currentUser.uid,
 
