@@ -1,67 +1,94 @@
-const { list, put } = require('@vercel/blob');
+async function loadMods(){
 
-const INDEX_PATH = 'ptem-mods/index.json';
+  try{
 
-async function getIndex() {
-  const result = await list({ prefix: INDEX_PATH, limit: 1 });
-  if (!result.blobs.length) return [];
-  const r = await fetch(result.blobs[0].url, { cache: 'no-store' });
-  if (!r.ok) return [];
-  const data = await r.json();
-  return Array.isArray(data) ? data : [];
-}
+    const r = await fetch(
+      "/api/mods",
+      {cache:"no-store"}
+    );
 
-async function saveIndex(items) {
-  await put(INDEX_PATH, JSON.stringify(items, null, 2), {
-    access: 'public',
-    addRandomSuffix: false,
-    contentType: 'application/json',
-    allowOverwrite: true,
-  });
-}
+    if(!r.ok)
+      throw new Error("Could not load mods");
 
-module.exports = async function handler(request, response) {
-  try {
-    const items = await getIndex();
-    const id = request.query?.id;
+    mods = await r.json();
 
-    if (request.method === 'GET') {
-      if (!id) return response.status(200).json(items);
-      const mod = items.find(x => x.id === id);
-      if (!mod) return response.status(404).json({ error: 'Mod not found' });
-      return response.status(200).json(mod);
-    }
+    mods = mods.map(d => {
 
-    if (request.method === 'POST') {
-      const d = request.body;
-      if (!d || !d.id || !d.name || !d.download) {
-        return response.status(400).json({ error: 'Missing mod data' });
-      }
-      if (!/^[a-z0-9][a-z0-9-]{0,49}$/.test(d.id)) {
-        return response.status(400).json({ error: 'Invalid mod id' });
-      }
-      const clean = {
-        id: d.id,
-        name: String(d.name).slice(0, 80),
-        version: String(d.version || '1.0').slice(0, 30),
-        smalldesc: String(d.smalldesc || '').slice(0, 180),
-        description: String(d.description || '').slice(0, 10000),
-        credits: Array.isArray(d.credits) ? d.credits.map(String).slice(0, 30) : [],
-        author: Array.isArray(d.credits) && d.credits.length ? String(d.credits[0]).split(' - ')[0] : '',
-        date: d.date || new Date().toISOString(),
-        icon: String(d.icon || ''),
-        banner: String(d.banner || ''),
-        download: String(d.download),
+      const id =
+        String(d.id || d.name || "")
+          .replace(/^\/+|\/+$/g,"");
+
+      return {
+
+        id,
+
+        name: d.name || id,
+
+        description:
+          d.description ||
+          d.desc ||
+          "",
+
+        version:
+          d.version ||
+          "",
+
+        author:
+          Array.isArray(d.credits) &&
+          d.credits.length
+            ? String(d.credits[0])
+                .split(" - ")[0]
+            : (d.author || ""),
+
+        icon:
+          d.icon ||
+          `/mods/${encodeURIComponent(id)}/icon.png`,
+
+        banner:
+          d.banner ||
+          `/mods/${encodeURIComponent(id)}/banner.png`,
+
+        date:
+          d.date ||
+          d.updated_at ||
+          "1970-01-01",
+
+        smalldesc:
+          d.smalldesc ||
+          d.desc ||
+          ""
+
+        download:
+          d.download||
+          ""
       };
-      const next = items.filter(x => x.id !== clean.id);
-      next.push(clean);
-      await saveIndex(next);
-      return response.status(201).json(clean);
-    }
 
-    return response.status(405).json({ error: 'Method not allowed' });
-  } catch (error) {
-    console.error(error);
-    return response.status(500).json({ error: error.message || 'Server error' });
+    });
+
+  }catch(e){
+
+    console.error(e);
+
+    grid.replaceChildren();
+
+    empty.textContent =
+      "Couldn't load mods. :(";
+
+    empty.classList.remove("hidden");
+
   }
-};
+
+}
+
+const detail=document.getElementById("detail");
+const id=new URLSearchParams(location.search).get("id");
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+async function load(){
+  loadMods();
+  document.title=`${d.name||id} - PTEM Mods`;
+  detail.innerHTML=`<div class="mod-layout"><aside class="media-column"><div class="media-panel icon-panel"><img class="detail-icon" src="${esc(icon)}" onerror="this.src='assets/missing-mod.png'"></div><div class="media-panel banner-panel"><img class="detail-banner" src="${esc(banner)}" alt="" onerror="this.src='assets/missing-banner.png'"></div></aside><section class="detail-column"><div class="title-row"><div class="title-panel"><div><h1>${esc(d.name||id)}</h1><div class="meta">v${esc(d.version||"1.0")} · ${esc(author)}</div></div></div><a class="download-button" id="download" href="${esc(download)}" download><img src="assets/download.png" alt="Download ${d.name||id}"></a></div><div class="detail-panel description-panel"><h2 class="panel-title">Description</h2><div class="description">${esc(d.description||d.desc||"No description.")}</div></div><div class="detail-panel credits-panel"><h2 class="panel-title">Credits<img src="assets/credits.png" alt=""></h2><div class="credits-list">${credits.length?credits.map(x=>`<div class="credit">${esc(x)}</div>`).join(""):'<div class="missing">No credits listed.</div>'}</div></div></section></div>`;
+  const dl=document.getElementById("download");
+  dl.addEventListener("error",()=>{});
+ }catch(e){detail.innerHTML='<p class="empty">Could not load this mod :(.</p>';console.error(e)}
+}
+load();
