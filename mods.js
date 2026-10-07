@@ -48,7 +48,7 @@ async function load() {
         ? d.credits
         : [];
 
-    const author = d.author || "";,
+    const author = d.author || "";
 
     const icon =
       d.icon ||
