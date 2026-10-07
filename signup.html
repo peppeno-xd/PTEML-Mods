@@ -188,14 +188,6 @@ form.addEventListener("submit", async (event) => {
       );
 
 
-    await updateProfile(
-      result.user,
-      {
-        displayName: displayName
-      }
-    );
-
-
     console.log("USER CREATED:", result.user);
 
     status.textContent =
