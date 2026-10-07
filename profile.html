@@ -144,11 +144,11 @@ onAuthStateChanged(auth, async (user) => {
       </h1>
 
       <p class="meta">
-        ${esc(user.email)}
+        ${esc(user.displayName||"User")}
       </p>
 
       <button id="logout">
-        LOG OUT
+        Log Out
       </button>
 
     </div>
