@@ -21,7 +21,7 @@ function setupAuthUI() {
       // Usuario conectado
 
       login.innerHTML =
-        '<img src="assets/nav-login.png" alt=""> ${(user.email || "Account")}';
+        `<img src="assets/nav-login.png" alt=""> ${(user.email || "Account")}`;
 
       login.href = "";
 
