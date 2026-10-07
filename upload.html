@@ -113,10 +113,23 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
+
 const form = document.getElementById("upload-form");
 const status = document.getElementById("status");
 
-  let currentUser = null;
+let currentUser = null;
+
+const MAX = 50 * 1024 * 1024;
+
+let zipData = null;
+let zipMod = null;
+let zipIcon = null;
+let zipBanner = null;
+
+
+// ---------------------------------------------------------
+// AUTH
+// ---------------------------------------------------------
 
 form.style.display = "none";
 
@@ -127,20 +140,21 @@ onAuthStateChanged(auth, (user) => {
     location.href = "login.html";
 
     return;
-});
+  }
 
   currentUser = user;
 
   form.style.display = "";
 
-const MAX = 50 * 1024 * 1024;
+});
 
-let zipData = null;
-let zipMod = null;
-let zipIcon = null;
-let zipBanner = null;
+
+// ---------------------------------------------------------
+// Slug
+// ---------------------------------------------------------
 
 function slug(s) {
+
   return s
     .toLowerCase()
     .trim()
@@ -149,7 +163,13 @@ function slug(s) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 50);
+
 }
+
+
+// ---------------------------------------------------------
+// Buscar archivo dentro del ZIP
+// ---------------------------------------------------------
 
 function findZipFile(zip, filename) {
 
@@ -165,11 +185,18 @@ function findZipFile(zip, filename) {
 
     if (clean === wanted)
       return zip.files[name];
+
   }
 
   return null;
+
 }
-  
+
+
+// ---------------------------------------------------------
+// Leer mod.json
+// ---------------------------------------------------------
+
 async function readModJson(zip) {
 
   const file = findZipFile(zip, "mod.json");
@@ -188,8 +215,15 @@ async function readModJson(zip) {
     console.warn("Invalid mod.json:", e);
 
     return null;
+
   }
+
 }
+
+
+// ---------------------------------------------------------
+// ZIP seleccionado
+// ---------------------------------------------------------
 
 document.getElementById("zip").addEventListener("change", async e => {
 
@@ -198,13 +232,16 @@ document.getElementById("zip").addEventListener("change", async e => {
   if (!file)
     return;
 
+
   if (file.size > MAX) {
 
     status.textContent =
       "ERROR: The ZIP must be 50 MB or smaller.";
 
     return;
+
   }
+
 
   try {
 
@@ -221,13 +258,27 @@ document.getElementById("zip").addEventListener("change", async e => {
     zipIcon = findZipFile(zip, "icon.png");
     zipBanner = findZipFile(zip, "banner.png");
 
+
+    // -----------------------------------------------------
+    // Rellenar información desde mod.json
+    // -----------------------------------------------------
+
     if (zipMod) {
 
-      const name = document.getElementById("name");
-      const version = document.getElementById("version");
-      const smalldesc = document.getElementById("smalldesc");
-      const description = document.getElementById("description");
-      const credits = document.getElementById("credits");
+      const name =
+        document.getElementById("name");
+
+      const version =
+        document.getElementById("version");
+
+      const smalldesc =
+        document.getElementById("smalldesc");
+
+      const description =
+        document.getElementById("description");
+
+      const credits =
+        document.getElementById("credits");
 
 
       if (!name.value.trim() && zipMod.name)
@@ -247,6 +298,7 @@ document.getElementById("zip").addEventListener("change", async e => {
           zipMod.smalldesc ||
           zipMod.small_desc ||
           "";
+
       }
 
 
@@ -256,18 +308,28 @@ document.getElementById("zip").addEventListener("change", async e => {
           zipMod.description ||
           zipMod.desc ||
           "";
+
       }
 
 
-      if (!credits.value.trim() && Array.isArray(zipMod.credits)) {
+      if (
+        !credits.value.trim()
+        && Array.isArray(zipMod.credits)
+      ) {
 
-        credits.value = zipMod.credits.join("\n");
+        credits.value =
+          zipMod.credits.join("\n");
+
       }
 
     }
 
 
-    let found = [];
+    // -----------------------------------------------------
+    // Mostrar archivos encontrados
+    // -----------------------------------------------------
+
+    const found = [];
 
     if (zipMod)
       found.push("mod.json");
@@ -307,19 +369,33 @@ document.getElementById("zip").addEventListener("change", async e => {
 
 });
 
+
+// ---------------------------------------------------------
+// Convertir archivo del ZIP a File
+// ---------------------------------------------------------
+
 async function zipEntryToFile(entry, filename) {
 
   if (!entry)
     return null;
 
-  const blob = await entry.async("blob");
+  const blob =
+    await entry.async("blob");
 
   return new File(
     [blob],
     filename,
-    { type: "image/png" }
+    {
+      type: "image/png"
+    }
   );
+
 }
+
+
+// ---------------------------------------------------------
+// Upload
+// ---------------------------------------------------------
 
 async function send(file, path, contentType) {
 
@@ -334,7 +410,8 @@ async function send(file, path, contentType) {
 
     contentType,
 
-    multipart: file.size > 4 * 1024 * 1024,
+    multipart:
+      file.size > 4 * 1024 * 1024,
 
     onUploadProgress: p => {
 
@@ -347,58 +424,112 @@ async function send(file, path, contentType) {
 
 }
 
+
+// ---------------------------------------------------------
+// SUBMIT
+// ---------------------------------------------------------
+
 form.addEventListener("submit", async e => {
 
   e.preventDefault();
 
+
   try {
 
-    const zip = document.getElementById("zip").files[0];
+    if (!currentUser)
+      throw new Error("You must be logged in.");
+
+
+    const zip =
+      document.getElementById("zip").files[0];
+
 
     if (!zip)
       throw new Error("Select a ZIP first.");
 
+
     if (zip.size > MAX)
-      throw new Error("The ZIP must be 50 MB or smaller.");
+      throw new Error(
+        "The ZIP must be 50 MB or smaller."
+      );
 
 
     const name =
-      document.getElementById("name").value.trim();
+      document.getElementById("name")
+        .value
+        .trim();
+
 
     const version =
-      document.getElementById("version").value.trim();
+      document.getElementById("version")
+        .value
+        .trim();
+
 
     const smalldesc =
-      document.getElementById("smalldesc").value.trim();
+      document.getElementById("smalldesc")
+        .value
+        .trim();
+
 
     const description =
-      document.getElementById("description").value.trim();
+      document.getElementById("description")
+        .value
+        .trim();
+
 
     const credits =
-      document.getElementById("credits").value
+      document.getElementById("credits")
+        .value
         .split(/\r?\n/)
         .map(x => x.trim())
         .filter(Boolean);
 
+
     const id = slug(name);
+
 
     if (!id)
       throw new Error("Invalid mod name.");
 
+
     let icon =
-      document.getElementById("icon").files[0] || null;
+      document.getElementById("icon")
+        .files[0] || null;
+
 
     let banner =
-      document.getElementById("banner").files[0] || null;
+      document.getElementById("banner")
+        .files[0] || null;
 
+
+    // Usar icon.png del ZIP si no seleccionaron uno manualmente
 
     if (!icon && zipIcon)
-      icon = await zipEntryToFile(zipIcon, "icon.png");
+      icon =
+        await zipEntryToFile(
+          zipIcon,
+          "icon.png"
+        );
+
+
+    // Usar banner.png del ZIP si no seleccionaron uno manualmente
 
     if (!banner && zipBanner)
-      banner = await zipEntryToFile(zipBanner, "banner.png");
+      banner =
+        await zipEntryToFile(
+          zipBanner,
+          "banner.png"
+        );
 
-    status.textContent = "Uploading ZIP...";
+
+    // -----------------------------------------------------
+    // Upload ZIP
+    // -----------------------------------------------------
+
+    status.textContent =
+      "Uploading ZIP...";
+
 
     const z = await send(
       zip,
@@ -406,11 +537,13 @@ form.addEventListener("submit", async e => {
       "application/zip"
     );
 
+
     const i = await send(
       icon,
       `mods/${id}/icon.png`,
       "image/png"
     );
+
 
     const b = await send(
       banner,
@@ -418,6 +551,10 @@ form.addEventListener("submit", async e => {
       "image/png"
     );
 
+
+    // -----------------------------------------------------
+    // Metadata
+    // -----------------------------------------------------
 
     status.textContent =
       "Saving mod information...";
@@ -437,15 +574,21 @@ form.addEventListener("submit", async e => {
 
       credits,
 
-      date: new Date().toISOString(),
+      date:
+        new Date().toISOString(),
 
-      author: currentUser.displayName || currentUser.email,
+      author:
+        currentUser.displayName ||
+        currentUser.email,
 
-      authorUid: currentUser.uid,
+      authorUid:
+        currentUser.uid,
 
-      icon: i?.url || "",
+      icon:
+        i?.url || "",
 
-      banner: b?.url || "",
+      banner:
+        b?.url || "",
 
       download:
         z?.downloadUrl ||
@@ -454,25 +597,36 @@ form.addEventListener("submit", async e => {
 
     };
 
-    const r = await fetch("/api/mods", {
 
-      method: "POST",
+    // -----------------------------------------------------
+    // Guardar mod
+    // -----------------------------------------------------
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+    const r =
+      await fetch(
+        "/api/mods",
+        {
+          method: "POST",
 
-      body: JSON.stringify(meta)
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-    });
+          body:
+            JSON.stringify(meta)
+        }
+      );
 
 
-    const out = await r.json();
+    const out =
+      await r.json();
 
 
     if (!r.ok)
       throw new Error(
-        out.error || "Could not save mod"
+        out.error ||
+        "Could not save mod"
       );
 
 
@@ -496,6 +650,3 @@ form.addEventListener("submit", async e => {
 });
 
 </script>
-
-</body>
-</html>
