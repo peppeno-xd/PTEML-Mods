@@ -6,10 +6,15 @@
 <title>Upload a mod! - PTEM Mods</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 <div class="scanlines"></div>
+
 <header class="site-header">
-  <div class="brand"><img src="assets/logo.png" class="logo-image" alt="PTEM Mods"></div>
+  <div class="brand">
+    <img src="assets/logo.png" class="logo-image" alt="PTEM Mods">
+  </div>
+
   <nav class="main-nav">
     <a href="index.html"><img src="assets/nav-mods.png" alt=""> Mods</a>
     <a href="#"><img src="assets/nav-login.png" alt=""> Log In</a>
@@ -17,53 +22,524 @@
     <a href="upload.html"><img src="assets/nav-upload.png" alt=""> Upload</a>
   </nav>
 </header>
+
 <main class="page">
-  <div class="mod-topbar"><a class="back-link" href="index.html">← Go Back</a></div>
+  <div class="mod-topbar">
+    <a class="back-link" href="index.html">← Go Back</a>
+  </div>
+
   <section class="detail-panel description-panel">
     <h1 class="panel-title">UPLOAD A MOD!</h1>
+
     <form id="upload-form">
-      <label>Mod name<br><input id="name" required maxlength="80"></label><br><br>
-      <label>Version<br><input id="version" required maxlength="30" value="1.0"></label><br><br>
-      <label>Small description<br><input id="smalldesc" maxlength="180"></label><br><br>
-      <label>Description<br><textarea id="description" required maxlength="10000" rows="8"></textarea></label><br><br>
-      <label>Credits (one per line)<br><textarea id="credits" rows="5" placeholder="Peppeno - Creador"></textarea></label><br><br>
-      <label>Mod ZIP (max 50 MB)<br><input id="zip" type="file" accept=".zip,application/zip" required></label><br><br>
-      <label>Icon PNG (optional)<br><input id="icon" type="file" accept="image/png"></label><br><br>
-      <label>Banner PNG (optional)<br><input id="banner" type="file" accept="image/png"></label><br><br>
+
+      <label>
+        Mod name<br>
+        <input id="name" required maxlength="80">
+      </label>
+
+      <br><br>
+
+      <label>
+        Version<br>
+        <input id="version" required maxlength="30" value="1.0">
+      </label>
+
+      <br><br>
+
+      <label>
+        Small description<br>
+        <input id="smalldesc" maxlength="180">
+      </label>
+
+      <br><br>
+
+      <label>
+        Description<br>
+        <textarea id="description" required maxlength="10000" rows="8"></textarea>
+      </label>
+
+      <br><br>
+
+      <label>
+        Credits (one per line)<br>
+        <textarea id="credits" rows="5"
+          placeholder="Peppeno - Creador"></textarea>
+      </label>
+
+      <br><br>
+
+      <label>
+        Mod ZIP (max 50 MB)<br>
+        <input id="zip" type="file"
+          accept=".zip,application/zip" required>
+      </label>
+
+      <br><br>
+
+      <label>
+        Icon PNG (optional)<br>
+        <input id="icon" type="file" accept="image/png">
+      </label>
+
+      <br><br>
+
+      <label>
+        Banner PNG (optional)<br>
+        <input id="banner" type="file" accept="image/png">
+      </label>
+
+      <br><br>
+
       <button type="submit">UPLOAD MOD</button>
+
     </form>
+
     <p id="status" class="missing"></p>
   </section>
 </main>
+
 <footer>PTEM LOADER MODS</footer>
+
 <script type="module">
+
 import { upload } from "https://esm.sh/@vercel/blob/client";
-const form=document.getElementById("upload-form"),status=document.getElementById("status");
-const MAX=50*1024*1024;
-const slug=s=>s.toLowerCase().trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,50);
-async function send(file,path,contentType){
- if(!file)return null;
- return upload(path,file,{access:"public",handleUploadUrl:"/api/blob-upload",contentType,multipart:file.size>4*1024*1024,onUploadProgress:p=>{status.textContent=`Uploading ${file.name}: ${Math.round(p.percentage)}%`}});
+import JSZip from "https://esm.sh/jszip@3.10.1";
+
+const form = document.getElementById("upload-form");
+const status = document.getElementById("status");
+
+const MAX = 50 * 1024 * 1024;
+
+let zipData = null;
+let zipMod = null;
+let zipIcon = null;
+let zipBanner = null;
+
+
+/* ---------------------------------------------------------
+   Slug
+--------------------------------------------------------- */
+
+function slug(s) {
+  return s
+    .toLowerCase()
+    .trim()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
 }
-form.addEventListener("submit",async e=>{
- e.preventDefault();
- try{
-  const zip=document.getElementById("zip").files[0];
-  if(!zip||zip.size>MAX)throw new Error("The ZIP must be 50 MB or smaller.");
-  const name=document.getElementById("name").value;
-  const id=slug(name); if(!id)throw new Error("Invalid mod name.");
-  status.textContent="Uploading ZIP...";
-  const z=await send(zip,`mods/${id}/${id}.zip`,"application/zip");
-  const i=await send(document.getElementById("icon").files[0],`mods/${id}/icon.png`,"image/png");
-  const b=await send(document.getElementById("banner").files[0],`mods/${id}/banner.png`,"image/png");
-  status.textContent="Saving mod information...";
-  const meta={id,name,version:document.getElementById("version").value,smalldesc:document.getElementById("smalldesc").value,description:document.getElementById("description").value,credits:document.getElementById("credits").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),date:new Date().toISOString(),icon:i?.url||"",banner:b?.url||"",download:z?.downloadUrl||z?.url||""};
-  const r=await fetch("/api/mods",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(meta)});
-  const out=await r.json(); if(!r.ok)throw new Error(out.error||"Could not save mod");
-  status.textContent="Mod uploaded! Redirecting...";
-  location.href=`mod.html?id=${encodeURIComponent(id)}`;
- }catch(err){console.error(err);status.textContent="ERROR: "+err.message;}
+
+
+/* ---------------------------------------------------------
+   Buscar archivo dentro del ZIP
+--------------------------------------------------------- */
+
+function findZipFile(zip, filename) {
+
+  const wanted = filename.toLowerCase();
+
+  for (const name of Object.keys(zip.files)) {
+
+    const clean = name
+      .replace(/\\/g, "/")
+      .split("/")
+      .pop()
+      .toLowerCase();
+
+    if (clean === wanted)
+      return zip.files[name];
+  }
+
+  return null;
+}
+
+
+/* ---------------------------------------------------------
+   Leer mod.json
+--------------------------------------------------------- */
+
+async function readModJson(zip) {
+
+  const file = findZipFile(zip, "mod.json");
+
+  if (!file)
+    return null;
+
+  try {
+
+    const text = await file.async("text");
+
+    return JSON.parse(text);
+
+  } catch (e) {
+
+    console.warn("Invalid mod.json:", e);
+
+    return null;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   ZIP seleccionado
+--------------------------------------------------------- */
+
+document.getElementById("zip").addEventListener("change", async e => {
+
+  const file = e.target.files[0];
+
+  if (!file)
+    return;
+
+  if (file.size > MAX) {
+
+    status.textContent =
+      "ERROR: The ZIP must be 50 MB or smaller.";
+
+    return;
+  }
+
+  try {
+
+    status.textContent = "Reading mod.json...";
+
+    zipData = file;
+
+    const buffer = await file.arrayBuffer();
+
+    const zip = await JSZip.loadAsync(buffer);
+
+    zipMod = await readModJson(zip);
+
+    zipIcon = findZipFile(zip, "icon.png");
+    zipBanner = findZipFile(zip, "banner.png");
+
+
+    /* ---------------------------------------------
+       Rellenar solamente campos vacíos
+    --------------------------------------------- */
+
+    if (zipMod) {
+
+      const name = document.getElementById("name");
+      const version = document.getElementById("version");
+      const smalldesc = document.getElementById("smalldesc");
+      const description = document.getElementById("description");
+      const credits = document.getElementById("credits");
+
+
+      if (!name.value.trim() && zipMod.name)
+        name.value = zipMod.name;
+
+
+      if (
+        (!version.value.trim() || version.value === "1.0")
+        && zipMod.version
+      )
+        version.value = zipMod.version;
+
+
+      if (!smalldesc.value.trim()) {
+
+        smalldesc.value =
+          zipMod.smalldesc ||
+          zipMod.small_desc ||
+          "";
+      }
+
+
+      if (!description.value.trim()) {
+
+        description.value =
+          zipMod.description ||
+          zipMod.desc ||
+          "";
+      }
+
+
+      if (!credits.value.trim() && Array.isArray(zipMod.credits)) {
+
+        credits.value = zipMod.credits.join("\n");
+      }
+
+    }
+
+
+    let found = [];
+
+    if (zipMod)
+      found.push("mod.json");
+
+    if (zipIcon)
+      found.push("icon.png");
+
+    if (zipBanner)
+      found.push("banner.png");
+
+
+    if (found.length) {
+
+      status.textContent =
+        "Found in ZIP: " + found.join(", ");
+
+    } else {
+
+      status.textContent =
+        "No mod.json found. Fill the information manually.";
+
+    }
+
+  } catch (err) {
+
+    console.error(err);
+
+    zipData = null;
+    zipMod = null;
+    zipIcon = null;
+    zipBanner = null;
+
+    status.textContent =
+      "ERROR: Could not read the ZIP.";
+
+  }
+
 });
+
+
+/* ---------------------------------------------------------
+   Convert ZIP file to File
+--------------------------------------------------------- */
+
+async function zipEntryToFile(entry, filename) {
+
+  if (!entry)
+    return null;
+
+  const blob = await entry.async("blob");
+
+  return new File(
+    [blob],
+    filename,
+    { type: "image/png" }
+  );
+}
+
+
+/* ---------------------------------------------------------
+   Upload a Blob
+--------------------------------------------------------- */
+
+async function send(file, path, contentType) {
+
+  if (!file)
+    return null;
+
+  return upload(path, file, {
+
+    access: "public",
+
+    handleUploadUrl: "/api/blob-upload",
+
+    contentType,
+
+    multipart: file.size > 4 * 1024 * 1024,
+
+    onUploadProgress: p => {
+
+      status.textContent =
+        `Uploading ${file.name}: ${Math.round(p.percentage)}%`;
+
+    }
+
+  });
+
+}
+
+
+/* ---------------------------------------------------------
+   Submit
+--------------------------------------------------------- */
+
+form.addEventListener("submit", async e => {
+
+  e.preventDefault();
+
+  try {
+
+    const zip = document.getElementById("zip").files[0];
+
+    if (!zip)
+      throw new Error("Select a ZIP first.");
+
+    if (zip.size > MAX)
+      throw new Error("The ZIP must be 50 MB or smaller.");
+
+
+    const name =
+      document.getElementById("name").value.trim();
+
+    const version =
+      document.getElementById("version").value.trim();
+
+    const smalldesc =
+      document.getElementById("smalldesc").value.trim();
+
+    const description =
+      document.getElementById("description").value.trim();
+
+    const credits =
+      document.getElementById("credits").value
+        .split(/\r?\n/)
+        .map(x => x.trim())
+        .filter(Boolean);
+
+
+    const id = slug(name);
+
+    if (!id)
+      throw new Error("Invalid mod name.");
+
+
+    /* ---------------------------------------------
+       Determinar imágenes
+
+       Manual > ZIP
+    --------------------------------------------- */
+
+    let icon =
+      document.getElementById("icon").files[0] || null;
+
+    let banner =
+      document.getElementById("banner").files[0] || null;
+
+
+    if (!icon && zipIcon)
+      icon = await zipEntryToFile(zipIcon, "icon.png");
+
+    if (!banner && zipBanner)
+      banner = await zipEntryToFile(zipBanner, "banner.png");
+
+
+    /* ---------------------------------------------
+       Upload ZIP
+    --------------------------------------------- */
+
+    status.textContent = "Uploading ZIP...";
+
+    const z = await send(
+      zip,
+      `mods/${id}/${id}.zip`,
+      "application/zip"
+    );
+
+
+    /* ---------------------------------------------
+       Upload icon
+    --------------------------------------------- */
+
+    const i = await send(
+      icon,
+      `mods/${id}/icon.png`,
+      "image/png"
+    );
+
+
+    /* ---------------------------------------------
+       Upload banner
+    --------------------------------------------- */
+
+    const b = await send(
+      banner,
+      `mods/${id}/banner.png`,
+      "image/png"
+    );
+
+
+    /* ---------------------------------------------
+       Metadata
+    --------------------------------------------- */
+
+    status.textContent =
+      "Saving mod information...";
+
+
+    const meta = {
+
+      id,
+
+      name,
+
+      version,
+
+      smalldesc,
+
+      description,
+
+      credits,
+
+      date: new Date().toISOString(),
+
+      icon: i?.url || "",
+
+      banner: b?.url || "",
+
+      download:
+        z?.downloadUrl ||
+        z?.url ||
+        ""
+
+    };
+
+
+    /* ---------------------------------------------
+       Guardar mod.json
+    --------------------------------------------- */
+
+    const r = await fetch("/api/mods", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify(meta)
+
+    });
+
+
+    const out = await r.json();
+
+
+    if (!r.ok)
+      throw new Error(
+        out.error || "Could not save mod"
+      );
+
+
+    status.textContent =
+      "Mod uploaded! Redirecting...";
+
+
+    location.href =
+      `mod.html?id=${encodeURIComponent(id)}`;
+
+
+  } catch (err) {
+
+    console.error(err);
+
+    status.textContent =
+      "ERROR: " + err.message;
+
+  }
+
+});
+
 </script>
+
 </body>
 </html>
