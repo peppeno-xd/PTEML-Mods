@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Log In - PTEM Mods</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="scanlines"></div>
+
+<header class="site-header">
+
+  <div class="brand">
+    <img
+      src="assets/logo.png"
+      class="logo-image"
+      alt="PTEM Mods"
+    >
+  </div>
+
+  <nav class="main-nav">
+
+    <a href="index.html">
+      <img src="assets/nav-mods.png" alt="">
+      Mods
+    </a>
+
+    <a href="login.html">
+      <img src="assets/nav-login.png" alt="">
+      Log In
+    </a>
+
+    <a href="signup.html">
+      <img src="assets/nav-signup.png" alt="">
+      Sign Up
+    </a>
+
+    <a href="upload.html">
+      <img src="assets/nav-upload.png" alt="">
+      Upload
+    </a>
+
+  </nav>
+
+</header>
+
+
+<main class="page">
+
+  <div class="mod-topbar">
+
+    <a class="back-link" href="index.html">
+      ← Go Back
+    </a>
+
+  </div>
+
+
+  <section
+    class="detail-panel description-panel"
+    style="max-width:650px;margin:auto;"
+  >
+
+    <h1 class="panel-title">
+      LOG IN
+    </h1>
+
+
+    <form id="login-form">
+
+      <label>
+        Email<br>
+        <input
+          id="email"
+          type="email"
+          required
+          autocomplete="email"
+        >
+      </label>
+
+      <br><br>
+
+
+      <label>
+        Password<br>
+        <input
+          id="password"
+          type="password"
+          required
+          autocomplete="current-password"
+        >
+      </label>
+
+      <br><br>
+
+
+      <button type="submit">
+        LOG IN
+      </button>
+
+    </form>
+
+
+    <div style="text-align:center;margin:20px 0;">
+      OR
+    </div>
+
+
+    <button id="google-login" type="button">
+      CONTINUE WITH GOOGLE
+    </button>
+
+
+    <p id="status" class="missing"></p>
+
+
+    <hr>
+
+
+    <p>
+      Don't have an account?
+      <a href="signup.html">
+        Sign Up
+      </a>
+    </p>
+
+  </section>
+
+</main>
+
+
+<footer>
+  PTEM LOADER MODS
+</footer>
+
+
+<script type="module">
+
+import { auth } from "./firebase.js";
+
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithRedirect
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+
+const form =
+  document.getElementById("login-form");
+
+const google =
+  document.getElementById("google-login");
+
+const status =
+  document.getElementById("status");
+
+
+/* =========================================
+   Email + Password
+========================================= */
+
+form.addEventListener("submit", async e => {
+
+  e.preventDefault();
+
+
+  const email =
+    document.getElementById("email")
+      .value.trim();
+
+  const password =
+    document.getElementById("password")
+      .value;
+
+
+  try {
+
+    status.textContent =
+      "Logging in...";
+
+
+    await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+
+    status.textContent =
+      "Logged in! Redirecting...";
+
+
+    location.href =
+      "index.html";
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    status.textContent =
+      "ERROR: " + error.message;
+
+  }
+
+});
+
+
+/* =========================================
+   Google
+========================================= */
+
+google.addEventListener("click", async () => {
+
+  try {
+
+    status.textContent =
+      "Opening Google...";
+
+
+    const provider =
+      new GoogleAuthProvider();
+
+
+    await signInWithRedirect(
+      auth,
+      provider
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    status.textContent =
+      "ERROR: " + error.message;
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
