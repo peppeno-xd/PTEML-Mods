@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -41,7 +40,10 @@
       Sign Up
     </a>
 
-    <script type="module" src="auth-ui.js"></script>
+    <script
+      type="module"
+      src="auth-ui.js">
+    </script>
 
     <a href="upload.html">
       <img src="assets/nav-upload.png" alt="">
@@ -57,17 +59,16 @@
 
   <div class="mod-topbar">
 
-    <a class="back-link" href="index.html">
+    <a
+      class="back-link"
+      href="index.html">
       ← Go Back
     </a>
 
   </div>
 
 
-  <section
-    id="profile"
-    class="detail-panel description-panel"
-  >
+  <section id="profile">
 
     <p class="empty">
       Loading profile...
@@ -76,20 +77,22 @@
   </section>
 
 
-  <section
-    id="mods-section"
-    class="detail-panel description-panel"
-    style="margin-top:24px;"
-  >
+  <section>
 
     <h2 class="panel-title">
-      MY MODS
+      Mods
     </h2>
 
     <div
-      id="my-mods"
-      class="mod-grid"
-    ></div>
+      id="profile-mods"
+      class="mod-grid">
+    </div>
+
+    <p
+      id="no-mods"
+      class="empty hidden">
+      This user has no mods yet. :(
+    </p>
 
   </section>
 
@@ -101,198 +104,9 @@
 </footer>
 
 
-<script type="module">
-
-import { auth } from "./firebase.js";
-
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-
-
-const profile =
-  document.getElementById("profile");
-
-const modsGrid =
-  document.getElementById("my-mods");
-
-
-onAuthStateChanged(auth, async (user) => {
-
-  // No está logueado
-
-  if (!user) {
-
-    location.href = "login.html";
-
-    return;
-
-  }
-
-
-  // -------------------------------
-  // Perfil
-  // -------------------------------
-
-  profile.innerHTML = `
-
-    <div style="text-align:center;">
-
-      <h1 class="panel-title">
-        <img src="assets/nav-login.png" alt=""> ${esc(user.displayName||"User")}
-      </h1>
-
-      <p class="meta">
-        ${esc(user.email||"burger@burger.com")}
-      </p>
-
-      <button id="logout">
-        Log Out
-      </button>
-
-    </div>
-
-  `;
-
-
-  document
-    .getElementById("logout")
-    .addEventListener("click", async () => {
-
-      await signOut(auth);
-
-      location.href = "index.html";
-
-    });
-
-
-  // -------------------------------
-  // Cargar mods
-  // -------------------------------
-
-  try {
-
-    const response =
-      await fetch("/api/mods", {
-        cache: "no-store"
-      });
-
-
-    if (!response.ok)
-      throw new Error("Could not load mods");
-
-
-    const mods =
-      await response.json();
-
-
-    const myMods =
-      mods.filter(mod =>
-        String(mod.authorUid || "") ===
-        String(user.uid)
-      );
-
-
-    if (!myMods.length) {
-
-      modsGrid.innerHTML = `
-        <p class="empty">
-          You haven't uploaded any mods yet. :(
-        </p>
-      `;
-
-      return;
-
-    }
-
-
-    modsGrid.innerHTML =
-      myMods.map(mod => `
-
-        <a
-          class="mod-card"
-          href="mod.html?id=${encodeURIComponent(mod.id)}"
-        >
-
-          <div class="mod-images">
-
-            <img
-              class="mod-banner"
-              src="${esc(
-                mod.banner ||
-                "assets/missing-banner.png"
-              )}"
-              alt=""
-            >
-
-            <img
-              class="mod-icon"
-              src="${esc(
-                mod.icon ||
-                "assets/missing-mod.png"
-              )}"
-              alt=""
-            >
-
-          </div>
-
-
-          <div class="mod-content">
-
-            <h2>
-              ${esc(mod.name || mod.id)}
-            </h2>
-
-            <p>
-              ${esc(mod.smalldesc || "")}
-            </p>
-
-            <span class="version">
-              v${esc(mod.version || "1.0")}
-            </span>
-
-          </div>
-
-        </a>
-
-      `).join("");
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    modsGrid.innerHTML = `
-      <p class="empty">
-        Couldn't load your mods. :(
-      </p>
-    `;
-
-  }
-
-});
-
-
-function esc(value) {
-
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-
-    c => ({
-
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-
-    }[c])
-
-  );
-
-}
-
+<script
+  type="module"
+  src="profile.js">
 </script>
 
 </body>
