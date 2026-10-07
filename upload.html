@@ -49,7 +49,7 @@
       <br><br>
 
       <label>
-        Small description<br>
+        Small description (for the main page)<br>
         <input id="smalldesc" maxlength="180">
       </label>
 
@@ -65,7 +65,7 @@
       <label>
         Credits (one per line)<br>
         <textarea id="credits" rows="5"
-          placeholder="Peppeno - Creador"></textarea>
+          placeholder="A People - Creator"></textarea>
       </label>
 
       <br><br>
@@ -79,14 +79,14 @@
       <br><br>
 
       <label>
-        Icon PNG (optional)<br>
+        Icon (optional)<br>
         <input id="icon" type="file" accept="image/png">
       </label>
 
       <br><br>
 
       <label>
-        Banner PNG (optional)<br>
+        Banner (optional)<br>
         <input id="banner" type="file" accept="image/png">
       </label>
 
@@ -107,8 +107,36 @@
 import { upload } from "https://esm.sh/@vercel/blob/client";
 import JSZip from "https://esm.sh/jszip@3.10.1";
 
+import { auth } from "./firebase.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
 const form = document.getElementById("upload-form");
 const status = document.getElementById("status");
+
+  let currentUser = null;
+
+form.style.display = "none";
+
+onAuthStateChanged(auth, (user) => {
+
+  if (!user) {
+
+    location.href = "login.html";
+
+    return;
+  }
+
+  currentUser = user;
+
+  form.style.display = "";
+
+  status.textContent =
+    "Logged in as: " + user.email;
+
+});
 
 const MAX = 50 * 1024 * 1024;
 
