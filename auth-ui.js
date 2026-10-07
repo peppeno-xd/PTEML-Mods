@@ -23,12 +23,12 @@ function setupAuthUI() {
       login.innerHTML =
         `<img src="assets/nav-login.png" alt=""> ${(user.email || "Account")}`;
 
-      login.href = "";
+      login.href = "profile.html";
 
       signup.innerHTML =
         '<img src="assets/nav-signup.png" alt=""> Sign Out';
 
-      signup.href = "profile.html";
+      signup.href = "";
 
 
       signup.onclick = async (event) => {
