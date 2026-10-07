@@ -136,7 +136,8 @@ import { auth } from "./firebase.js";
 
 import {
   createUserWithEmailAndPassword,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 
@@ -186,6 +187,10 @@ form.addEventListener("submit", async (event) => {
         email,
         password
       );
+
+    await updateProfile(result.user, {
+      displayName: displayName
+    });
 
 
     console.log("USER CREATED:", result.user);
