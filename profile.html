@@ -140,11 +140,11 @@ onAuthStateChanged(auth, async (user) => {
     <div style="text-align:center;">
 
       <h1 class="panel-title">
-        <img src="assets/nav-login.png" alt=""> ${esc(user.email)}
+        <img src="assets/nav-login.png" alt=""> ${esc(user.displayName||"User")}
       </h1>
 
       <p class="meta">
-        ${esc(user.displayName||"User")}
+        ${esc(user.email||"burger@burger.com")}
       </p>
 
       <button id="logout">
