@@ -22,12 +22,6 @@ export default async function handler(req, res)
 
 
     const files =
-      result.blobs.map(blob =>
-      {
-        const pathname =
-          blob.pathname;
-
-        const files =
   result.blobs
     .filter(blob =>
     {
@@ -43,6 +37,15 @@ export default async function handler(req, res)
     })
     .map(blob =>
     {
+
+        return {
+          name: filename,
+          url: blob.downloadUrl || blob.url,
+          size: blob.size || 0,
+          type
+        };
+      });
+    })
 
 
     return res
@@ -62,4 +65,4 @@ export default async function handler(req, res)
           "Could not load downloads"
       });
   }
-            }
+}
