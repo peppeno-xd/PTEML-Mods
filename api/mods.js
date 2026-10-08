@@ -2,52 +2,37 @@ import { put, list, del } from "@vercel/blob";
 
 
 async function getFirebaseAdmin() {
+  const { cert, getApps, initializeApp } =
+    await import("firebase-admin/app");
 
-  const {
-    cert,
-    getApps,
-    initializeApp
-  } = await import("firebase-admin/app");
-
-  const {
-    getAuth
-  } = await import("firebase-admin/auth");
-
+  const { getAuth } =
+    await import("firebase-admin/auth");
 
   if (!getApps().length) {
-
     const serviceAccount =
-      JSON.parse(
-        process.env.FIREBASE_SERVICE_ACCOUNT
-      );
-
+      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
     initializeApp({
-      credential:
-        cert(serviceAccount)
+      credential: cert(serviceAccount)
     });
-
   }
-
 
   return getAuth();
-
 }
 
-
 async function verifyUser(req) {
-
-  const authorization =
-    req.headers.authorization || "";
-
+  const authorization = req.headers.authorization || "";
 
   if (!authorization.startsWith("Bearer ")) {
-
-    throw new Error(
-      "Missing authorization token"
-    );
-
+    throw new Error("Missing authorization token");
   }
+
+  const token = authorization.substring(7);
+
+  const adminAuth = await getFirebaseAdmin();
+
+  return await adminAuth.verifyIdToken(token);
+}
 
 
   const token =
