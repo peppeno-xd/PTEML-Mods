@@ -5,6 +5,6 @@
   "description": "PTEM Mods website with Vercel Blob uploads",
   "dependencies": {
     "@vercel/blob": "latest",
-    "firebase-admin": "latest"
+    "firebase-admin": "12.7.0"
   }
 }
