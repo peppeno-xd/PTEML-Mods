@@ -4,6 +4,7 @@
   "private": true,
   "description": "PTEM Mods website with Vercel Blob uploads",
   "dependencies": {
-    "@vercel/blob": "latest"
+    "@vercel/blob": "latest",
+    "firebase-admin": "latest"
   }
 }
