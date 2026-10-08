@@ -2,48 +2,60 @@ import { put, list, del } from "@vercel/blob";
 
 
 async function getFirebaseAdmin() {
+
   const { cert, getApps, initializeApp } =
     await import("firebase-admin/app");
 
   const { getAuth } =
     await import("firebase-admin/auth");
 
+
   if (!getApps().length) {
+
     const serviceAccount =
-      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      JSON.parse(
+        process.env.FIREBASE_SERVICE_ACCOUNT
+      );
+
 
     initializeApp({
       credential: cert(serviceAccount)
     });
+
   }
+
 
   return getAuth();
+
 }
+
 
 async function verifyUser(req) {
-  const authorization = req.headers.authorization || "";
+
+  const authorization =
+    req.headers.authorization || "";
+
 
   if (!authorization.startsWith("Bearer ")) {
-    throw new Error("Missing authorization token");
+
+    throw new Error(
+      "Missing authorization token"
+    );
+
   }
-
-  const token = authorization.substring(7);
-
-  const adminAuth = await getFirebaseAdmin();
-
-  return await adminAuth.verifyIdToken(token);
-}
 
 
   const token =
     authorization.substring(7);
 
 
-  const auth =
-    getFirebaseAdmin();
+  const adminAuth =
+    await getFirebaseAdmin();
 
 
-  return await auth.verifyIdToken(token);
+  return await adminAuth.verifyIdToken(
+    token
+  );
 
 }
 
@@ -207,7 +219,7 @@ export default async function handler(req, res) {
 
 
       /*
-        Primero verificamos Firebase.
+        Verificar Firebase
       */
 
       const user =
@@ -247,14 +259,14 @@ export default async function handler(req, res) {
 
 
       /*
-        Buscamos el mod.
+        Buscar mod.json
       */
 
       const modPath =
         `mods/${id}/mod.json`;
 
 
-      const result =
+      const jsonResult =
         await list({
           prefix:
             modPath
@@ -262,7 +274,7 @@ export default async function handler(req, res) {
 
 
       const jsonBlob =
-        result.blobs.find(
+        jsonResult.blobs.find(
           blob =>
             blob.pathname ===
             modPath
@@ -282,7 +294,7 @@ export default async function handler(req, res) {
 
 
       /*
-        Leemos el mod.json.
+        Leer mod.json
       */
 
       const response =
@@ -308,11 +320,7 @@ export default async function handler(req, res) {
 
 
       /*
-        LA PROTECCIÓN REAL.
-        
-        El UID del token de Firebase
-        debe ser exactamente igual al
-        authorUid guardado en mod.json.
+        Comprobar propietario
       */
 
       if (
@@ -332,18 +340,31 @@ export default async function handler(req, res) {
 
 
       /*
-        Ahora sí podemos borrar.
+        Buscar TODOS los archivos
+        pertenecientes al mod.
       */
 
-      const files =
-        result.blobs;
+      const allFiles =
+        await list({
+          prefix:
+            `mods/${id}/`
+        });
 
 
-      for (const blob of files) {
+      /*
+        Borrar ZIP, icon, banner,
+        mod.json, etc.
+      */
+
+      for (
+        const blob of allFiles.blobs
+      ) {
 
         try {
 
-          await del(blob.url);
+          await del(
+            blob.url
+          );
 
         } catch (e) {
 
@@ -362,6 +383,7 @@ export default async function handler(req, res) {
         .status(200)
         .json({
           ok: true,
+
           message:
             "Mod deleted successfully"
         });
@@ -379,7 +401,10 @@ export default async function handler(req, res) {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "API ERROR:",
+      error
+    );
 
 
     return res
