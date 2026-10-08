@@ -207,10 +207,11 @@ async function load() {
 
             </a>
 
-            ${isOwner ? '
+            ${isOwner ? `
             <a id="delete-mod" class="delete-button" delete >
             <img src="assets/deletemod.png" alt="Deletes ${esc(d.name || id)}" >
-            ': ''
+            </a>
+            `: ``
             }
 
 
