@@ -1,67 +1,409 @@
-const { list, put } = require('@vercel/blob');
+import { put, list, del } from "@vercel/blob";
 
-const INDEX_PATH = 'ptem-mods/index.json';
+import {
+  cert,
+  getApps,
+  initializeApp
+} from "firebase-admin/app";
 
-async function getIndex() {
-  const result = await list({ prefix: INDEX_PATH, limit: 1 });
-  if (!result.blobs.length) return [];
-  const r = await fetch(result.blobs[0].url, { cache: 'no-store' });
-  if (!r.ok) return [];
-  const data = await r.json();
-  return Array.isArray(data) ? data : [];
-}
+import {
+  getAuth
+} from "firebase-admin/auth";
 
-async function saveIndex(items) {
-  await put(INDEX_PATH, JSON.stringify(items, null, 2), {
-    access: 'public',
-    addRandomSuffix: false,
-    contentType: 'application/json',
-    allowOverwrite: true,
-  });
-}
 
-module.exports = async function handler(request, response) {
-  try {
-    const items = await getIndex();
-    const id = request.query?.id;
+function getFirebaseAdmin() {
 
-    if (request.method === 'GET') {
-      if (!id) return response.status(200).json(items);
-      const mod = items.find(x => x.id === id);
-      if (!mod) return response.status(404).json({ error: 'Mod not found' });
-      return response.status(200).json(mod);
-    }
+  if (!getApps().length) {
 
-    if (request.method === 'POST') {
-      const d = request.body;
-      if (!d || !d.id || !d.name || !d.download) {
-        return response.status(400).json({ error: 'Missing mod data' });
-      }
-      if (!/^[a-z0-9][a-z0-9-]{0,49}$/.test(d.id)) {
-        return response.status(400).json({ error: 'Invalid mod id' });
-      }
-      const clean = {
-        id: d.id,
-        name: String(d.name).slice(0, 80),
-        version: String(d.version || '1.0').slice(0, 30),
-        smalldesc: String(d.smalldesc || '').slice(0, 180),
-        description: String(d.description || '').slice(0, 10000),
-        credits: Array.isArray(d.credits) ? d.credits.map(String).slice(0, 30) : [],
-        author: Array.isArray(d.credits) && d.credits.length ? String(d.credits[0]).split(' - ')[0] : '',
-        date: d.date || new Date().toISOString(),
-        icon: String(d.icon || ''),
-        banner: String(d.banner || ''),
-        download: String(d.download),
-      };
-      const next = items.filter(x => x.id !== clean.id);
-      next.push(clean);
-      await saveIndex(next);
-      return response.status(201).json(clean);
-    }
+    const serviceAccount =
+      JSON.parse(
+        process.env.FIREBASE_SERVICE_ACCOUNT
+      );
 
-    return response.status(405).json({ error: 'Method not allowed' });
-  } catch (error) {
-    console.error(error);
-    return response.status(500).json({ error: error.message || 'Server error' });
+
+    initializeApp({
+      credential:
+        cert(serviceAccount)
+    });
+
   }
-};
+
+
+  return getAuth();
+
+}
+
+
+async function verifyUser(req) {
+
+  const authorization =
+    req.headers.authorization || "";
+
+
+  if (!authorization.startsWith("Bearer ")) {
+
+    throw new Error(
+      "Missing authorization token"
+    );
+
+  }
+
+
+  const token =
+    authorization.substring(7);
+
+
+  const auth =
+    getFirebaseAdmin();
+
+
+  return await auth.verifyIdToken(token);
+
+}
+
+
+export default async function handler(req, res) {
+
+  try {
+
+
+    /*
+      GET
+      Lista todos los mods
+    */
+
+    if (req.method === "GET") {
+
+      const result =
+        await list({
+          prefix: "mods/"
+        });
+
+
+      const mods = [];
+
+
+      for (const blob of result.blobs) {
+
+        if (
+          !blob.pathname.endsWith(
+            "/mod.json"
+          )
+        )
+          continue;
+
+
+        try {
+
+          const response =
+            await fetch(blob.url);
+
+
+          if (!response.ok)
+            continue;
+
+
+          const mod =
+            await response.json();
+
+
+          mods.push(mod);
+
+
+        } catch (e) {
+
+          console.error(
+            "Could not read:",
+            blob.pathname,
+            e
+          );
+
+        }
+
+      }
+
+
+      mods.sort(
+        (a, b) =>
+          new Date(b.date || 0) -
+          new Date(a.date || 0)
+      );
+
+
+      return res
+        .status(200)
+        .json(mods);
+
+    }
+
+
+    /*
+      POST
+      Guarda información del mod
+    */
+
+    if (req.method === "POST") {
+
+      const mod = req.body;
+
+
+      if (!mod || !mod.id) {
+
+        return res
+          .status(400)
+          .json({
+            error:
+              "Missing mod id"
+          });
+
+      }
+
+
+      const id =
+        String(mod.id);
+
+
+      if (
+        !/^[a-z0-9-]+$/i.test(id) ||
+        id.length > 50
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            error:
+              "Invalid mod id"
+          });
+
+      }
+
+
+      const pathname =
+        `mods/${id}/mod.json`;
+
+
+      const blob =
+        await put(
+          pathname,
+          JSON.stringify(
+            mod,
+            null,
+            2
+          ),
+          {
+            access: "public",
+
+            contentType:
+              "application/json",
+
+            addRandomSuffix:
+              false
+          }
+        );
+
+
+      return res
+        .status(200)
+        .json({
+          ok: true,
+          url: blob.url
+        });
+
+    }
+
+
+    /*
+      DELETE
+      Borra el mod completo
+    */
+
+    if (req.method === "DELETE") {
+
+
+      /*
+        Primero verificamos Firebase.
+      */
+
+      const user =
+        await verifyUser(req);
+
+
+      const id =
+        String(
+          req.query?.id || ""
+        );
+
+
+      if (!id) {
+
+        return res
+          .status(400)
+          .json({
+            error:
+              "Missing mod id"
+          });
+
+      }
+
+
+      if (
+        !/^[a-z0-9-]+$/i.test(id)
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            error:
+              "Invalid mod id"
+          });
+
+      }
+
+
+      /*
+        Buscamos el mod.
+      */
+
+      const modPath =
+        `mods/${id}/mod.json`;
+
+
+      const result =
+        await list({
+          prefix:
+            modPath
+        });
+
+
+      const jsonBlob =
+        result.blobs.find(
+          blob =>
+            blob.pathname ===
+            modPath
+        );
+
+
+      if (!jsonBlob) {
+
+        return res
+          .status(404)
+          .json({
+            error:
+              "Mod not found"
+          });
+
+      }
+
+
+      /*
+        Leemos el mod.json.
+      */
+
+      const response =
+        await fetch(
+          jsonBlob.url
+        );
+
+
+      if (!response.ok) {
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Could not read mod information"
+          });
+
+      }
+
+
+      const mod =
+        await response.json();
+
+
+      /*
+        LA PROTECCIÓN REAL.
+        
+        El UID del token de Firebase
+        debe ser exactamente igual al
+        authorUid guardado en mod.json.
+      */
+
+      if (
+        !mod.authorUid ||
+        String(mod.authorUid) !==
+        String(user.uid)
+      ) {
+
+        return res
+          .status(403)
+          .json({
+            error:
+              "You are not the owner of this mod"
+          });
+
+      }
+
+
+      /*
+        Ahora sí podemos borrar.
+      */
+
+      const files =
+        result.blobs;
+
+
+      for (const blob of files) {
+
+        try {
+
+          await del(blob.url);
+
+        } catch (e) {
+
+          console.error(
+            "Could not delete:",
+            blob.pathname,
+            e
+          );
+
+        }
+
+      }
+
+
+      return res
+        .status(200)
+        .json({
+          ok: true,
+          message:
+            "Mod deleted successfully"
+        });
+
+    }
+
+
+    return res
+      .status(405)
+      .json({
+        error:
+          "Method not allowed"
+      });
+
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    return res
+      .status(500)
+      .json({
+        error:
+          error.message ||
+          "Server error"
+      });
+
+  }
+
+}
