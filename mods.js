@@ -205,15 +205,15 @@ async function load() {
                 alt="Download ${esc(d.name || id)}"
               >
 
-            </a>
-
-            ${isOwner ? `
-            <a id="delete-mod" class="delete-button" delete >
+              ${isOwner ? `
+            <a id="delete-mod" class="download-button" delete >
             <img src="assets/deletemod.png" alt="Deletes ${esc(d.name || id)}" >
             </a>
             `: ``
-            }
+              }
+              
 
+            </a>
 
           </div>
 
