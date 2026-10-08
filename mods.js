@@ -312,6 +312,7 @@ async function load() {
         "click",
         async () => {
 
+          const user = await verifyUser(req);
           const confirmed =
             confirm(
               `Delete "${d.name || id}"?\n\nThis will delete the mod, ZIP, icon and banner.`
@@ -322,6 +323,12 @@ async function load() {
             return;
 
 
+          if (String(mod.authorUid) !== String(user.uid)) {
+              return res.status(403).json({
+              error: "You are not the owner of this mod."
+            });
+          }
+          
           deleteButton.disabled = true;
           deleteButton.textContent =
             "Deleting...";
@@ -333,30 +340,15 @@ async function load() {
               await currentUser.getIdToken();
 
 
-            const response =
-              await fetch(
-                `/api/mods?id=${encodeURIComponent(id)}`,
-                {
-                  method: "DELETE",
+            const modPath = `mods/${id}/`;
 
-                  headers: {
-                    "Authorization":
-                      `Bearer ${token}`
-                  }
-                }
-              );
+            const { blobs } = await list({
+              prefix: modPath
+            });
 
-
-            const result =
-              await response.json();
-
-
-            if (!response.ok)
-              throw new Error(
-                result.error ||
-                "Could not delete mod"
-              );
-
+            for (const blob of blobs) {
+              await del(blob.url);
+            }
 
             detail.innerHTML = `
 
