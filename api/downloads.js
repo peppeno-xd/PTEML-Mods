@@ -27,40 +27,22 @@ export default async function handler(req, res)
         const pathname =
           blob.pathname;
 
-        const filename =
-          pathname
-            .split("/")
-            .pop();
+        const files =
+  result.blobs
+    .filter(blob =>
+    {
+      const filename =
+        blob.pathname.split("/").pop();
 
+      // Ignorar rutas sin nombre de archivo
+      if (!filename)
+        return false;
 
-        let type = "FILE";
-
-
-        if (
-          filename
-            .toLowerCase()
-            .endsWith(".apk")
-        )
-        {
-          type = "ANDROID APK";
-        }
-        else if (
-          filename
-            .toLowerCase()
-            .endsWith(".zip")
-        )
-        {
-          type = "ZIP";
-        }
-
-
-        return {
-          name: filename,
-          url: blob.downloadUrl || blob.url,
-          size: blob.size || 0,
-          type
-        };
-      });
+      // Solo mostrar archivos descargables
+      return /\.(apk|zip)$/i.test(filename);
+    })
+    .map(blob =>
+    {
 
 
     return res
