@@ -304,89 +304,81 @@ async function load() {
 
     if (isOwner) {
 
-      const deleteButton =
-        document.getElementById("delete-mod");
+  const deleteButton =
+    document.getElementById("delete-mod");
 
+  deleteButton.addEventListener(
+    "click",
+    async () => {
 
-      deleteButton.addEventListener(
-        "click",
-        async () => {
+      const confirmed =
+        confirm(
+          `Delete "${d.name || id}"?\n\nThis will delete the mod, ZIP, icon and banner.`
+        );
 
-          const user = await verifyUser(req);
-          const confirmed =
-            confirm(
-              `Delete "${d.name || id}"?\n\nThis will delete the mod, ZIP, icon and banner.`
-            );
+      if (!confirmed)
+        return;
 
+      deleteButton.disabled = true;
+      deleteButton.textContent = "Deleting...";
 
-          if (!confirmed)
-            return;
+      try {
 
+        const token =
+          await currentUser.getIdToken();
 
-          if (String(mod.authorUid) !== String(user.uid)) {
-              return res.status(403).json({
-              error: "You are not the owner of this mod."
-            });
-          }
-          
-          deleteButton.disabled = true;
-          deleteButton.textContent =
-            "Deleting...";
-
-
-          try {
-
-            const token =
-              await currentUser.getIdToken();
-
-
-            const modPath = `mods/${id}/`;
-
-            const { blobs } = await list({
-              prefix: modPath
-            });
-
-            for (const blob of blobs) {
-              await del(blob.url);
+        const response =
+          await fetch(
+            `/api/mods?id=${encodeURIComponent(id)}`,
+            {
+              method: "DELETE",
+              headers: {
+                "Authorization": `Bearer ${token}`
+              }
             }
+          );
 
-            detail.innerHTML = `
+        const result =
+          await response.json();
 
-              <p class="empty">
+        if (!response.ok)
+          throw new Error(
+            result.error || "Could not delete mod"
+          );
 
-                Mod deleted successfully!<br><br>
+        detail.innerHTML = `
 
-                <a href="index.html">
-                  ← Back to Mods
-                </a>
+          <p class="empty">
 
-              </p>
+            Mod deleted successfully!<br><br>
 
-            `;
+            <a href="index.html">
+              ← Back to Mods
+            </a>
 
+          </p>
 
-          } catch (error) {
+        `;
 
-            console.error(error);
+      } catch (error) {
 
+        console.error(error);
 
-            alert(
-              "ERROR: " +
-              error.message
-            );
+        alert(
+          "ERROR: " +
+          error.message
+        );
 
+        deleteButton.disabled = false;
+        deleteButton.textContent =
+          "Delete Mod";
 
-            deleteButton.disabled = false;
-            deleteButton.textContent =
-              "Delete Mod";
-
-          }
-
-        }
-      );
+      }
 
     }
+  );
 
+}
 
   } catch (e) {
 
