@@ -30,6 +30,20 @@ export default async function handler(req, res)
       .map(blob =>
       {
         const filename = blob.pathname.split("/").pop();
+        let description = "No Description.";
+
+        if (filename === "PizzaTowerEggplanLoaderMobile 1.3.apk")
+        {
+          description = "The eggplant mobile Loader for android!!!!!";
+        }
+        else if (filename === "PizzaTowerEggplanLoaderMobile 1.3.zip")
+        {
+          description = "The eggplant mobile Loader for PC!!!!!";
+        }
+        else if (filename === "template-mod.zip")
+        {
+          description = "If you dont know how to start, use this!";
+        }
 
         let type = "FILE";
 
@@ -44,6 +58,7 @@ export default async function handler(req, res)
 
         return {
           name: filename,
+          description: description,
           url: blob.downloadUrl || blob.url,
           size: blob.size || 0,
           type: type
