@@ -207,30 +207,14 @@ async function load() {
 
             </a>
 
+            ${isOwner ? '
+            <a id="delete-mod" class="delete-button" delete >
+            <img src="assets/deletemod.png" alt="Deletes ${esc(d.name || id)}" >
+            ': ''
+            }
+
 
           </div>
-
-
-          ${
-            isOwner
-              ? `
-
-                <div class="owner-panel">
-
-                  <button
-                    id="delete-mod"
-                    class="delete-button"
-                    type="button"
-                  >
-                    Delete Mod
-                  </button>
-
-                </div>
-
-              `
-              : ""
-          }
-
 
           <div class="detail-panel description-panel">
 
