@@ -1,17 +1,18 @@
 import { put, list, del } from "@vercel/blob";
 
-import {
-  cert,
-  getApps,
-  initializeApp
-} from "firebase-admin/app";
 
-import {
-  getAuth
-} from "firebase-admin/auth";
+async function getFirebaseAdmin() {
 
+  const {
+    cert,
+    getApps,
+    initializeApp
+  } = await import("firebase-admin/app");
 
-function getFirebaseAdmin() {
+  const {
+    getAuth
+  } = await import("firebase-admin/auth");
+
 
   if (!getApps().length) {
 
