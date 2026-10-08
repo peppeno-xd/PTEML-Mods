@@ -89,7 +89,7 @@ function renderDownloads(files)
         <p>
           ${esc(
             file.description ||
-            "PTEM Download"
+            "PTEML Download"
           )}
         </p>
 
@@ -105,7 +105,7 @@ function renderDownloads(files)
           href="${esc(file.url)}"
           download
         >
-          DOWNLOAD
+          Download
         </a>
 
       </div>
